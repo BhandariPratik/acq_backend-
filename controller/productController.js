@@ -1,5 +1,6 @@
 let db = require('../models/connection');
 const { Op } = require('sequelize');
+const moment = require('moment')
 let product = db.product;
 
 const addProduct = async (req, res) => {
@@ -135,7 +136,23 @@ const getCategories = async (req, res) => {
 };
 
 
+const productCron = async (req, res) => {
+    try {
+
+        let currentDate = moment().format('YYYY-MM-DD');
+        await product.destroy({
+            where: {
+                expiryDate: {
+                    [Op.lt]: currentDate
+                }
+            }
+        });
+    } catch (err) {
+        res.status(500).json({ message: "Internal Server Error" });
+    }
+};
+
 
 module.exports = {
-   addProduct, listProduct, deleteProduct, findById, updateProduct, getCategories
+    addProduct, listProduct, deleteProduct, findById, updateProduct, getCategories, productCron
 }
