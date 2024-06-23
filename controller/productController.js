@@ -8,10 +8,8 @@ const addProduct = async (req, res) => {
         if (req.file) {
             reqbody.image = `http://localhost:4000/uploads/${req.file.filename}`;
         }
-        console.log('reqbody===>>>>', reqbody)
         let data = await product.create(reqbody)
 
-        console.log('data==>>>>>>>', data)
         res.status(200).json({ data, message: "Product added successfully" });
     }
     catch (err) {
@@ -30,7 +28,7 @@ const listProduct = async (req, res) => {
 
         let query = {};
         if (search_text) {
-            query.name = { [Op.like]: `%${search_text}%` }; 
+            query.name = { [Op.like]: `%${search_text}%` };
         }
         if (category) {
             query.category = category;
@@ -46,22 +44,30 @@ const listProduct = async (req, res) => {
     }
 }
 
-
 const deleteProduct = async (req, res) => {
     try {
-        console.log('req.params.id',req)
-        const productId = req.query.id;
-        const result = await product.destroy({
-            where: {
-                id: productId
-            }
-        });
 
-        if (result) {
-            res.status(200).json({ message: "Product deleted successfully" });
-        } else {
-            res.status(404).json({ message: "Product not found" });
+        let { id, owner } = req?.query;
+        let { userId } = req?.user;
+
+
+        if (parseInt(userId) !== parseInt(owner)) {
+            return res.status(404).json({ message: 'You do not own this product, therefore you cannot delete it' })
         }
+        else {
+            const result = await product.destroy({
+                where: {
+                    id: id
+                }
+            });
+
+            if (result) {
+                res.status(200).json({ message: "Product deleted successfully" });
+            } else {
+                res.status(404).json({ message: "Product not found" });
+            }
+        }
+
     } catch (err) {
         res.status(500).json({ message: "Internal Server Error" });
     }
@@ -69,7 +75,6 @@ const deleteProduct = async (req, res) => {
 
 const findById = async (req, res) => {
     try {
-        console.log('req.query.id',req.query.id)
         const productId = req.query.id;
         const user = await product.findOne({ where: { 'id': productId } });
 
@@ -85,22 +90,27 @@ const findById = async (req, res) => {
 
 const updateProduct = (async (req, res) => {
     try {
-        let { id } = req?.body;
+        let { id, owner } = req?.body;
+        let { userId } = req?.user;
 
-        let data = req.body; 
+        let data = req.body;
         if (req.file) {
             data.image = `http://localhost:4000/uploads/${req.file.filename}`;
         }
 
-        let updateData = await product.update(data, {where: { 'id': parseInt(id) }});
+        if (parseInt(userId) === parseInt(owner)) {
+            let updateData = await product.update(data, { where: { 'id': parseInt(id) } });
 
-        if (!updateData[0]) {
-            res.status(404).json({  message: 'Product not found' });
+            if (!updateData[0]) {
+                res.status(404).json({ message: 'Product not found' });
+            }
+            res.status(200).json({ message: 'Data updated successfully' })
+        } else {
+            return res.status(404).json({ message: 'You do not own this product, therefore you cannot update it' })
         }
-        res.status(200).json({ message: 'Data updated successfully' })
     }
     catch (err) {
-        console.log('error',err)
+        console.log('error', err)
         res.status(500).json({ message: 'Internal Server Error' });
     }
 })
@@ -127,5 +137,5 @@ const getCategories = async (req, res) => {
 
 
 module.exports = {
-    addProduct, listProduct, deleteProduct,findById,updateProduct,getCategories
+   addProduct, listProduct, deleteProduct, findById, updateProduct, getCategories
 }

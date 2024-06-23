@@ -8,7 +8,6 @@ const addUser = async (req, res) => {
     try {
         let reqbody = req.body
         let { email } = req.body
-        console.log('reqBody', reqbody)
 
         const user = await authModel.findOne({ where: { 'email': email } });
         if (user) {
@@ -30,13 +29,11 @@ const login = async (req, res) => {
         const { email, password } = req.body;
         const secretKey = process.env.SECRETKEY
 
-        console.log('body......', req.body)
         if (!email || !password) {
             return res.status(400).json({ message: 'Email and password are required' });
         }
 
         const user = await authModel.findOne({ where: { 'email': email, 'password': password } });
-        console.log('usersss==>>', user)
 
         if (!user) {
             return res.status(404).json({ message: 'Email or Password is Wrong' });
