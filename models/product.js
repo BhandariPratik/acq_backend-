@@ -38,6 +38,10 @@ module.exports = (connection, DataTypes) => {
       status: {
         type: DataTypes.ENUM('active', 'inactive', 'discontinued'),
         defaultValue: 'active'
+      },
+      priceflag: {
+        type: DataTypes.INTEGER,
+        defaultValue: 0
       }
     },
     {

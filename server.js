@@ -17,8 +17,8 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 require('./models/connection');
 
 const job = new CronJob(
-	// '0 0 0 * * *', 
-    '*/5 * * * * *',
+	'0 0 0 * * *', 
+    // '*/5 * * * * *',
     productCron,
 	null,
     true 
